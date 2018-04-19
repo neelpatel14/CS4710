@@ -6,8 +6,8 @@ state = {
 	"last-opponent-play": 1, #0 or 1 depending on strategy played
 	"last-outcome": None, #Might be None if first game, or whatever outcome of play is
 	"prospects": [
-	[4,3],
-	[5,2]
+	[4,5],
+	[3,2]
 	]
 }
 
@@ -15,16 +15,46 @@ info = {
 	"player_behavior": {},
 	"last_player": None,
 	"last_prospects": None,
-	"n_values": []
+	"n_values": [],
+	"new_game": 0,
+	"round_counter": 0,
+	"num_safe": 0,
+	"risky": 0,
+	"preferred": 0,
+	"dominant": None
 }
+
 def get_move(state):
 
-	ans = {"team-code": "eef8976e", #identifying team by the code assigned by game-program
-	"move": 1 #Can be 0 or 1 only
-	}
 	save_info(state)
-	print(get_Num(state))
-	return ans
+
+	#evaluate board
+	if info["new_game"]:
+		eval_board(state)
+	ans = choose_strat(state)
+	info["round_counter"] = info["round_counter"] + 1
+	return {"team-code": state["team-code"], #identifying team by the code assigned by game-program
+		"move": ans #Can be 0 or 1 only
+		}
+
+def choose_strat(state):
+
+	if info["dominant"] is not None:
+		return info["dominant"]
+
+	if (info["player"]):
+			# If in first game
+			if info["player_behavior"][state["opponent-name"]]["game2"] is None:
+				return first_game(state)
+
+			else:
+				if info["player_behavior"][state["opponent-name"]]["smart"]:
+					return safe_game(state)
+
+				else:
+					return risky_game(state)
+
+
 
 
 def eval_score(mat, score):
@@ -40,76 +70,116 @@ def eval_score(mat, score):
 	else:
 		return 2
 
-def get_Num(state):
+
+def eval_board(state):
 	a = state["prospects"][0][0]
 	b = state["prospects"][0][1]
 
 	c = state["prospects"][1][0]
 	d = state["prospects"][1][1]
 
-	print([(a,a), (b,c)])
-	print([(c,b), (d,d)])
-
-	if (a > c and b > d):
-		return 0
-	if (a < c and b < d):
-		return 1
+	if (a >= c and b >= d):
+		info["dominant"] = 0
+	if (a <= c and b <= d):
+		info["dominant"] = 0
 
 	avg_0 = (a + b)/2
 	avg_1 = (c+d)/2
 
 	if avg_0 > avg_1:
-		preferred = 0
+		info["preferred"] = 0
 	elif avg_1 > avg_0:
-		preferred = 1
+		info["preferred"] = 1
 	else:
-		preferred = None
+		info["preferred"] = None
 
 	maximum = max(a,b,c,d)
 	minimum = min(a,b,c,d)
 
 	if  maximum == a and minimum == b:
-		risky = 0
+		info["risky"] = 0
 	elif maximum == c and minimum == d:
-		risky = 1
+		info["risky"] = 1
 	elif abs(b-a) > abs(d-c):
-		risky = 0
+		info["risky"] = 0
 	elif abs(d-c) > abs(b-a):
-		risky = 1
+		info["risky"] = 1
 	else:
-		risky = None
-
-	print(avg_0, avg_1)
-	print("Pref: " + str(preferred))
-	print("Risky: " + str(risky))
-
-	if preferred != None:
-		return preferred
-	else:
-		if risky == 1:
-			return 0
-		else:
-			return 1
+		info["risky"] = None
 
 
-
+# def get_Num(state):
+# 	a = state["prospects"][0][0]
+# 	b = state["prospects"][0][1]
 #
-# def get_stats(arr):
-# 	mean = 0
-#     for i in arr:
-#         mean += i
-#     mean /= (1.0 * len(arr))
-#     std = 0
-#     for i in arr:
-#         std += (i - mean)**2
-#     std /= (len(arr) - 1)
-#     std = std ** (0.5)
-#     return mean, std
+# 	c = state["prospects"][1][0]
+# 	d = state["prospects"][1][1]
+#
+# 	print([(a,a), (b,c)])
+# 	print([(c,b), (d,d)])
+#
+# 	if (a > c and b > d):
+# 		return 0
+# 	if (a < c and b < d):
+# 		return 1
+#
+# 	avg_0 = (a + b)/2
+# 	avg_1 = (c+d)/2
+#
+# 	if avg_0 > avg_1:
+# 		preferred = 0
+# 	elif avg_1 > avg_0:
+# 		preferred = 1
+# 	else:
+# 		preferred = None
+#
+# 	maximum = max(a,b,c,d)
+# 	minimum = min(a,b,c,d)
+#
+# 	if  maximum == a and minimum == b:
+# 		risky = 0
+# 	elif maximum == c and minimum == d:
+# 		risky = 1
+# 	elif abs(b-a) > abs(d-c):
+# 		risky = 0
+# 	elif abs(d-c) > abs(b-a):
+# 		risky = 1
+# 	else:
+# 		risky = None
+#
+# 	print(avg_0, avg_1)
+# 	print("Pref: " + str(preferred))
+# 	print("Risky: " + str(risky))
+#
+# 	if preferred != None:
+# 		return preferred
+# 	else:
+# 		if risky == 1:
+# 			return 0
+# 		else:
+# 			return 1
+#
+#
+#
+# #
+def get_stats(arr):
+	mean = 0
+	for i in arr:
+		mean += i
+	mean /= (1.0 * len(arr))
+	std = 0
+	for i in arr:
+		std += (i - mean)**2
+	std /= (len(arr) - 1)
+	std = std ** (0.5)
+	return mean, std
 
 def save_info(state):
 	if ((state["opponent-name"] != info["last_player"]) or (state["prospects"] is not info["last_prospects"])):
 		#New game
-		print("NEW GAME !!!!!!!!!!!!!!!!!!")
+		info["new_game"] = 1
+		info["round_counter"] = 0
+		info["num_safe"] = 0
 		if state["last-outcome"] is not None:
 			# if info["last_player"] is None:
 			# 	info["last_player"] = state["opponent-name"]
@@ -141,8 +211,34 @@ def save_info(state):
 		#Same game, different round
 		if info["player_behavior"][state["opponent-name"]]["game2"] is None:
 			#We are in game 1, store last score in array
+			info["new_game"] = 0
 			uni_score = eval_score(state["prospects"], state["last-outcome"])
 			info["player_behavior"][state["opponent-name"]]["game1"].append(uni_score)
+
+
+
+def first_game(state):
+	if info["new_game"] is 1:
+		if len(info["n_values"]) is not 0:
+			info["num_safe"] = (int)(get_stats(info["n_values"])[0] * 0.2)
+
+		else:
+			info["num_safe"] = 3
+
+	if info["risky"] is None:
+		if info["preferred"] is not None:
+			return info["preferred"]
+
+		return 0
+
+	if info["preferred"] is None:
+		if info["risky"] is 0:
+			return 1
+		else:
+			return 0
+
+	if info["preferred"] is not info["risky"]:
+		return info["preferred"]
 
 
 
@@ -154,7 +250,10 @@ while (True):
 	if counter is 0:
 		state["last-outcome"] = None
 		state["prev-repetitions"] = None
-	get_move(state)
+	move = get_move(state)
+	print("---------INFO----------")
 	print(info)
-	print("-------------------------")
+	print("---------MOVE-----------")
+	print(move)
+
 	counter = counter + 1
