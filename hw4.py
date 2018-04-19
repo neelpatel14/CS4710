@@ -167,7 +167,8 @@ def save_info(state):
 			info["player_behavior"][state["opponent-name"]]["game1"].append(uni_score)
 
 
-
+#Function for the first game against any opponent, plays the first num_safe games safe,
+# If after num_safe games, the outcome was not 2, it switches moves
 def first_game(state):
 	if info["new_game"] is 1:
 		if len(info["n_values"]) > 1:
@@ -192,6 +193,10 @@ def first_game(state):
 		if info["preferred"] is not info["risky"]:
 			return info["preferred"]
 
+		else:
+			if info["preferred"] is 1:
+				return 0
+			return 1
 	else:
 		outcomes = info["player_behavior"][state["opponent-name"]]["game1"]
 		if outcomes[len(outcomes)-1] is 2:
@@ -202,8 +207,8 @@ def first_game(state):
 			else:
 				return 1
 
-
-
+#Function if the opponent is determined to be dumb, picks the risky option first
+#If the payout from the previous move is not 2, it switches
 def risky_game(state):
 
 	if info["round_counter"] is 1:
@@ -218,8 +223,8 @@ def risky_game(state):
 			else:
 				return 0
 
-		if info["preferred"] is not info["risky"]:
-			return info["risky"]
+		return info["risky"]
+
 
 	else:
 		outcomes = info["player_behavior"][state["opponent-name"]]["game2"]
@@ -231,7 +236,9 @@ def risky_game(state):
 			else:
 				return 1
 
-
+#Function if the opponent is determined to be smart, starts off with the non-risky move
+#If the outcome of the last round was 1 or greater (ie a good but not necessarily the best result, it picks the same move again)
+#otherwise it switches moves
 def safe_game(state):
 
 	if info["round_counter"] is 1:
@@ -251,7 +258,7 @@ def safe_game(state):
 
 	else:
 		outcomes = info["player_behavior"][state["opponent-name"]]["game2"]
-		if outcomes[len(outcomes)-1] is 2:
+		if outcomes[len(outcomes)-1] >= 1:
 			return info["last_move"]
 		else:
 			if info["last_move"] == 1:
