@@ -6,8 +6,8 @@ state = {
 	"last-opponent-play": 1, #0 or 1 depending on strategy played
 	"last-outcome": None, #Might be None if first game, or whatever outcome of play is
 	"prospects": [
-	[4,5],
-	[3,2]
+	[4,3],
+	[5,2]
 	]
 }
 
@@ -42,17 +42,17 @@ def choose_strat(state):
 	if info["dominant"] is not None:
 		return info["dominant"]
 
-	if (info["player"]):
-			# If in first game
-			if info["player_behavior"][state["opponent-name"]]["game2"] is None:
-				return first_game(state)
+	#if in first game
+	if info["player_behavior"][state["opponent-name"]]["game2"] is None:
+		return first_game(state)
 
-			else:
-				if info["player_behavior"][state["opponent-name"]]["smart"]:
-					return safe_game(state)
+	#if in second game
+	else:
+		if info["player_behavior"][state["opponent-name"]]["smart"]:
+			return safe_game(state)
 
-				else:
-					return risky_game(state)
+		else:
+			return risky_game(state)
 
 
 
