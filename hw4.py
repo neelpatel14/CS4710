@@ -82,10 +82,12 @@ def eval_board(state):
 
 	if (a >= c and b >= d):
 		info["dominant"] = 0
-	if (a <= c and b <= d):
-		info["dominant"] = 0
+	elif (a <= c and b <= d):
+		info["dominant"] = 1
+	else:
+		info["dominant"] = None
 
-	avg_0 = (a + b)/2
+	avg_0 = (a+b)/2
 	avg_1 = (c+d)/2
 
 	if avg_0 > avg_1:
@@ -108,6 +110,8 @@ def eval_board(state):
 		info["risky"] = 1
 	else:
 		info["risky"] = None
+"""
+"""
 
 def get_stats(arr):
 	mean = 0
