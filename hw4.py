@@ -97,9 +97,6 @@ def eval_board(state):
 	else:
 		info["preferred"] = None
 
-	maximum = max(a,b,c,d)
-	minimum = min(a,b,c,d)
-
 	if abs(b-a) > abs(d-c):
 		info["risky"] = 0
 	elif abs(d-c) > abs(b-a):
