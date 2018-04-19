@@ -21,7 +21,8 @@ info = {
 	"num_safe": 0,
 	"risky": 0,
 	"preferred": 0,
-	"dominant": None
+	"dominant": None,
+	"last_move": None
 }
 
 def get_move(state):
@@ -33,6 +34,7 @@ def get_move(state):
 		eval_board(state)
 	ans = choose_strat(state)
 	info["round_counter"] = info["round_counter"] + 1
+	info["last_move"] = ans
 	return {"team-code": state["team-code"], #identifying team by the code assigned by game-program
 		"move": ans #Can be 0 or 1 only
 		}
@@ -107,61 +109,6 @@ def eval_board(state):
 	else:
 		info["risky"] = None
 
-
-# def get_Num(state):
-# 	a = state["prospects"][0][0]
-# 	b = state["prospects"][0][1]
-#
-# 	c = state["prospects"][1][0]
-# 	d = state["prospects"][1][1]
-#
-# 	print([(a,a), (b,c)])
-# 	print([(c,b), (d,d)])
-#
-# 	if (a > c and b > d):
-# 		return 0
-# 	if (a < c and b < d):
-# 		return 1
-#
-# 	avg_0 = (a + b)/2
-# 	avg_1 = (c+d)/2
-#
-# 	if avg_0 > avg_1:
-# 		preferred = 0
-# 	elif avg_1 > avg_0:
-# 		preferred = 1
-# 	else:
-# 		preferred = None
-#
-# 	maximum = max(a,b,c,d)
-# 	minimum = min(a,b,c,d)
-#
-# 	if  maximum == a and minimum == b:
-# 		risky = 0
-# 	elif maximum == c and minimum == d:
-# 		risky = 1
-# 	elif abs(b-a) > abs(d-c):
-# 		risky = 0
-# 	elif abs(d-c) > abs(b-a):
-# 		risky = 1
-# 	else:
-# 		risky = None
-#
-# 	print(avg_0, avg_1)
-# 	print("Pref: " + str(preferred))
-# 	print("Risky: " + str(risky))
-#
-# 	if preferred != None:
-# 		return preferred
-# 	else:
-# 		if risky == 1:
-# 			return 0
-# 		else:
-# 			return 1
-#
-#
-#
-# #
 def get_stats(arr):
 	mean = 0
 	for i in arr:
@@ -219,29 +166,99 @@ def save_info(state):
 
 def first_game(state):
 	if info["new_game"] is 1:
-		if len(info["n_values"]) is not 0:
+		if len(info["n_values"]) > 1:
 			info["num_safe"] = (int)(get_stats(info["n_values"])[0] * 0.2)
 
 		else:
 			info["num_safe"] = 3
 
-	if info["risky"] is None:
-		if info["preferred"] is not None:
-			return info["preferred"]
+	if info["round_counter"] <= info["num_safe"]:
+		if info["risky"] is None:
+			if info["preferred"] is not None:
+				return info["preferred"]
 
-		return 0
-
-	if info["preferred"] is None:
-		if info["risky"] is 0:
-			return 1
-		else:
 			return 0
 
-	if info["preferred"] is not info["risky"]:
-		return info["preferred"]
+		if info["preferred"] is None:
+			if info["risky"] is 0:
+				return 1
+			else:
+				return 0
+
+		if info["preferred"] is not info["risky"]:
+			return info["preferred"]
+
+	else:
+		outcomes = info["player_behavior"][state["opponent-name"]]["game1"]
+		if outcomes[len(outcomes)-1] is 2:
+			return info["last_move"]
+		else:
+			if info["last_move"] == 1:
+				return 0
+			else:
+				return 1
 
 
 
+def risky_game(state):
+
+	if info["round_counter"] is 1:
+		if info["risky"] is None:
+			if info["preferred"] is not None:
+				return info["preferred"]
+			return 0
+
+		if info["preferred"] is None:
+			if info["risky"] is 0:
+				return 1
+			else:
+				return 0
+
+		if info["preferred"] is not info["risky"]:
+			return info["risky"]
+
+	else:
+		outcomes = info["player_behavior"][state["opponent-name"]]["game2"]
+		if outcomes[len(outcomes)-1] is 2:
+			return info["last_move"]
+		else:
+			if info["last_move"] == 1:
+				return 0
+			else:
+				return 1
+
+
+def safe_game(state):
+
+	if info["round_counter"] is 1:
+		if info["risky"] is None:
+			if info["preferred"] is not None:
+				return info["preferred"]
+			return 0
+
+		if info["preferred"] is None:
+			if info["risky"] is 0:
+				return 1
+			else:
+				return 0
+
+		if info["preferred"] is not info["risky"]:
+			return info["preferred"]
+
+	else:
+		outcomes = info["player_behavior"][state["opponent-name"]]["game2"]
+		if outcomes[len(outcomes)-1] is 2:
+			return info["last_move"]
+		else:
+			if info["last_move"] == 1:
+				return 0
+			else:
+				return 1
+
+
+
+
+#TEST CODE
 counter = 0
 while (True):
 	state["opponent-name"] = input("Opponent Name: ")
