@@ -100,11 +100,7 @@ def eval_board(state):
 	maximum = max(a,b,c,d)
 	minimum = min(a,b,c,d)
 
-	if  maximum == a and minimum == b:
-		info["risky"] = 0
-	elif maximum == c and minimum == d:
-		info["risky"] = 1
-	elif abs(b-a) > abs(d-c):
+	if abs(b-a) > abs(d-c):
 		info["risky"] = 0
 	elif abs(d-c) > abs(b-a):
 		info["risky"] = 1
