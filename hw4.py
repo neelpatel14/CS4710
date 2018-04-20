@@ -1,3 +1,4 @@
+"""
 state = {
 	"team-code": "ani's_friends",
 	"game": "sym",
@@ -24,10 +25,10 @@ info = {
 	"dominant": None,
 	"last_move": None
 }
-
+"""
 def get_move(state):
 	info = load_info()
-	if len(info) == 0:
+	if len(info) == 0 or info is None:
 		info = {
 		"player_behavior": {},
 		"last_player": None,
