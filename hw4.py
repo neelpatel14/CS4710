@@ -1,4 +1,3 @@
-"""
 state = {
 	"team-code": "ani's_friends",
 	"game": "sym",
@@ -23,12 +22,15 @@ info = {
 	"risky": 0,
 	"preferred": 0,
 	"dominant": None,
-	"last_move": None
+	"last_move": None,
+	"consecutive_plays": 0,
+	"last_oponenet_move": None
+
 }
-"""
+
 def get_move(state):
 	info = load_info()
-	if len(info) == 0 or info is None:
+	if len(info) == 0:
 		info = {
 		"player_behavior": {},
 		"last_player": None,
@@ -40,7 +42,9 @@ def get_move(state):
 		"risky": 0,
 		"preferred": 0,
 		"dominant": None,
-		"last_move": None
+		"last_move": None,
+		"consecutive_plays": 0,
+		"last_oponenet_move": state["last-opponent-play"]
 		}
 
 	process_info(state)
@@ -61,6 +65,13 @@ def choose_strat(state):
 
 	if info["dominant"] is not None:
 		return info["dominant"]
+
+	# if what they played last time is equal to what they played the time before that, add one to counter
+	if state["last-opponent-play"] == info["last_oponenet_move"]:
+		info["consecutive_plays"] +=1
+	else: #else, set back to 0
+		info["consecutive_plays"] = 0
+
 
 	#if in first game
 	if info["player_behavior"][state["opponent-name"]]["game2"] is None:
@@ -166,6 +177,8 @@ def process_info(state):
 
 		info["last_player"] = state["opponent-name"]
 		info["last_prospects"] = state["prospects"]
+		info["consecutive_plays"] = 0
+		info["last_oponenet_move"] = None
 
 	else:
 		#Same game, different round
@@ -174,6 +187,7 @@ def process_info(state):
 			info["new_game"] = 0
 			uni_score = eval_score(state["prospects"], state["last-outcome"])
 			info["player_behavior"][state["opponent-name"]]["game1"].append(uni_score)
+			info["last_oponenet_move"] = state["last-opponent-play"]
 
 
 #Function for the first game against any opponent, plays the first num_safe games safe,
@@ -187,6 +201,11 @@ def first_game(state):
 			info["num_safe"] = 3
 
 	if info["round_counter"] <= info["num_safe"]:
+
+		if info["consecutive_plays"] >= 4:
+			return info["risky"]
+
+
 		if info["risky"] is None:
 			if info["preferred"] is not None:
 				return info["preferred"]
