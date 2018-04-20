@@ -24,7 +24,8 @@ info = {
 	"dominant": None,
 	"last_move": None,
 	"consecutive_plays": 0,
-	"last_oponenet_move": None
+	"last_oponenet_move": None,
+    "split": None
 
 }
 
@@ -45,6 +46,7 @@ def get_move(state):
 		"last_move": None,
 		"consecutive_plays": 0,
 		"last_oponenet_move": state["last-opponent-play"]
+		"split: None"
 		}
 
 	process_info(state)
@@ -108,6 +110,9 @@ def eval_board(state):
 
 	c = state["prospects"][1][0]
 	d = state["prospects"][1][1]
+
+    if (a==d and b == c):
+        info["split"] = (max(a,b))
 
 	if (a >= c and b >= d):
 		info["dominant"] = 0
@@ -179,6 +184,7 @@ def process_info(state):
 		info["last_prospects"] = state["prospects"]
 		info["consecutive_plays"] = 0
 		info["last_oponenet_move"] = None
+        info["split"] = None
 
 	else:
 		#Same game, different round
@@ -202,6 +208,11 @@ def first_game(state):
 
 	if info["round_counter"] <= info["num_safe"]:
 
+
+		#basically, if twice in a row the opponent plays the same thing, and the board is split, and last thing we got was not the max of the board, return 1 - what the oponnent played. 
+		if info["consecutive_plays"] >= 2 and info["split"] not None and state["last-outcome"] != info["split"]:
+			return 1 - state["last-opponent-play"]
+		
 		if info["consecutive_plays"] >= 4:
 			return info["risky"]
 
@@ -268,7 +279,11 @@ def risky_game(state):
 #If the outcome of the last round was 1 or greater (ie a good but not necessarily the best result, it picks the same move again)
 #otherwise it switches moves
 def safe_game(state):
-
+	
+	if info["consecutive_plays"] >= 2 and info["split"] not None and state["last-outcome"] != info["split"]:
+		return 1 - state["last-opponent-play"]
+		
+	
 	if info["round_counter"] is 1:
 		if info["risky"] is None:
 			if info["preferred"] is not None:
