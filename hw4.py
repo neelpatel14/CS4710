@@ -26,8 +26,23 @@ info = {
 }
 
 def get_move(state):
+	info = load_info()
+	if len(info) == 0:
+		info = {
+		"player_behavior": {},
+		"last_player": None,
+		"last_prospects": None,
+		"n_values": [],
+		"new_game": 0,
+		"round_counter": 0,
+		"num_safe": 0,
+		"risky": 0,
+		"preferred": 0,
+		"dominant": None,
+		"last_move": None
+		}
 
-	save_info(state)
+	process_info(state)
 
 	#evaluate board
 	if info["new_game"]:
@@ -35,9 +50,11 @@ def get_move(state):
 	ans = choose_strat(state)
 	info["round_counter"] = info["round_counter"] + 1
 	info["last_move"] = ans
+	save_info(info)
 	return {"team-code": state["team-code"], #identifying team by the code assigned by game-program
 		"move": ans #Can be 0 or 1 only
 		}
+
 
 def choose_strat(state):
 
@@ -103,8 +120,6 @@ def eval_board(state):
 		info["risky"] = 1
 	else:
 		info["risky"] = None
-"""
-"""
 
 def get_stats(arr):
 	mean = 0
@@ -118,7 +133,7 @@ def get_stats(arr):
 	std = std ** (0.5)
 	return mean, std
 
-def save_info(state):
+def process_info(state):
 	if ((state["opponent-name"] != info["last_player"]) or (state["prospects"] is not info["last_prospects"])):
 		#New game
 		info["new_game"] = 1
