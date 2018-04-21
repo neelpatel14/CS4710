@@ -32,27 +32,7 @@ info = {
 game_lengths = []
 
 def get_move(state):
-	info = load_info()
-	if len(info) == 0:
-		info = {
-		"player_behavior": {},
-		"last_player": None,
-		"last_prospects": None,
-		"n_values": [],
-		"new_game": 0,
-		"round_counter": 0,
-		"num_safe": 0,
-		"risky": 0,
-		"preferred": 0,
-		"dominant": None,
-		"last_move": None,
-		"consecutive_plays": 0,
-		"last_oponenet_move": state["last-opponent-play"]
-		"split: None"
-		}
-
 	process_info(state)
-
 	#evaluate board
 	if info["new_game"]:
 		eval_board(state)
