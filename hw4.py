@@ -1,3 +1,6 @@
+TEAM_NAME = "anis_friends"
+MEMBERS = ["np2ch", "aml5ha", "rw5dc", "afc5fb"]
+
 anis_friends_json = {
 	"player_behavior": {},
 	"last_player": None,
