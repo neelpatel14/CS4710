@@ -83,8 +83,6 @@ def choose_strat(state):
 	else: #else, set back to 0
 		info["consecutive_plays"] = 0
 
-
-
 	#if in first game
 	if info["player_behavior"][state["opponent-name"]]["game2"] is None:
 		return first_game(state)
@@ -160,12 +158,7 @@ def get_stats(arr):
 	std = std ** (0.5)
 	return mean, std
 
-<<<<<<< HEAD
-def save_info(state):
-	# if the last player changes or the board changes, start a new game
-=======
 def process_info(state):
->>>>>>> origin/master
 	if ((state["opponent-name"] != info["last_player"]) or (state["prospects"] is not info["last_prospects"])):
 		#New game
 		game_lengths.append(info["round_counter"])
