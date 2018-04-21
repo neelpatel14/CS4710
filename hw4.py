@@ -22,12 +22,36 @@ info = {
 	"risky": 0,
 	"preferred": 0,
 	"dominant": None,
-	"last_move": None
+	"last_move": None,
+	"consecutive_plays": 0,
+	"last_oponenet_move": None,
+    "split": None
+
 }
 
-def get_move(state):
+game_lengths = []
 
-	save_info(state)
+def get_move(state):
+	info = load_info()
+	if len(info) == 0:
+		info = {
+		"player_behavior": {},
+		"last_player": None,
+		"last_prospects": None,
+		"n_values": [],
+		"new_game": 0,
+		"round_counter": 0,
+		"num_safe": 0,
+		"risky": 0,
+		"preferred": 0,
+		"dominant": None,
+		"last_move": None,
+		"consecutive_plays": 0,
+		"last_oponenet_move": state["last-opponent-play"]
+		"split: None"
+		}
+
+	process_info(state)
 
 	#evaluate board
 	if info["new_game"]:
@@ -35,14 +59,31 @@ def get_move(state):
 	ans = choose_strat(state)
 	info["round_counter"] = info["round_counter"] + 1
 	info["last_move"] = ans
+	save_info(info)
 	return {"team-code": state["team-code"], #identifying team by the code assigned by game-program
 		"move": ans #Can be 0 or 1 only
 		}
+
 
 def choose_strat(state):
 
 	if info["dominant"] is not None:
 		return info["dominant"]
+
+	if not game_lengths and info["round_counter"]>max(get_stats(game_lengths)[0]-2*game_lengths[1],6) 
+	# if game lengths is not empty AKA not the first game
+	# and the current round is greater than 1 standard deviation lower than the mean game number
+	# we assume normality of distribution because prof. said so
+		if info["risky"] not None
+			return info["risky"]
+
+	# if what they played last time is equal to what they played the time before that, add one to counter
+	if state["last-opponent-play"] == info["last_oponenet_move"]:
+		info["consecutive_plays"] +=1
+	else: #else, set back to 0
+		info["consecutive_plays"] = 0
+
+
 
 	#if in first game
 	if info["player_behavior"][state["opponent-name"]]["game2"] is None:
@@ -80,6 +121,9 @@ def eval_board(state):
 	c = state["prospects"][1][0]
 	d = state["prospects"][1][1]
 
+    if (a==d and b == c):
+        info["split"] = (max(a,b))
+
 	if (a >= c and b >= d):
 		info["dominant"] = 0
 	elif (a <= c and b <= d):
@@ -103,8 +147,6 @@ def eval_board(state):
 		info["risky"] = 1
 	else:
 		info["risky"] = None
-"""
-"""
 
 def get_stats(arr):
 	mean = 0
@@ -118,9 +160,15 @@ def get_stats(arr):
 	std = std ** (0.5)
 	return mean, std
 
+<<<<<<< HEAD
 def save_info(state):
+	# if the last player changes or the board changes, start a new game
+=======
+def process_info(state):
+>>>>>>> origin/master
 	if ((state["opponent-name"] != info["last_player"]) or (state["prospects"] is not info["last_prospects"])):
 		#New game
+		game_lengths.append(info["round_counter"])
 		info["new_game"] = 1
 		info["round_counter"] = 0
 		info["num_safe"] = 0
@@ -150,6 +198,9 @@ def save_info(state):
 
 		info["last_player"] = state["opponent-name"]
 		info["last_prospects"] = state["prospects"]
+		info["consecutive_plays"] = 0
+		info["last_oponenet_move"] = None
+        info["split"] = None
 
 	else:
 		#Same game, different round
@@ -158,11 +209,14 @@ def save_info(state):
 			info["new_game"] = 0
 			uni_score = eval_score(state["prospects"], state["last-outcome"])
 			info["player_behavior"][state["opponent-name"]]["game1"].append(uni_score)
+			info["last_oponenet_move"] = state["last-opponent-play"]
 
 
 #Function for the first game against any opponent, plays the first num_safe games safe,
 # If after num_safe games, the outcome was not 2, it switches moves
 def first_game(state):
+
+
 	if info["new_game"] is 1:
 		if len(info["n_values"]) > 1:
 			info["num_safe"] = (int)(get_stats(info["n_values"])[0] * 0.2)
@@ -171,6 +225,16 @@ def first_game(state):
 			info["num_safe"] = 3
 
 	if info["round_counter"] <= info["num_safe"]:
+
+
+		#basically, if twice in a row the opponent plays the same thing, and the board is split, and last thing we got was not the max of the board, return 1 - what the oponnent played. 
+		if info["consecutive_plays"] >= 2 and info["split"] not None and state["last-outcome"] != info["split"]:
+			return 1 - state["last-opponent-play"]
+		
+		if info["consecutive_plays"] >= 4:
+			return info["risky"]
+
+
 		if info["risky"] is None:
 			if info["preferred"] is not None:
 				return info["preferred"]
@@ -195,10 +259,9 @@ def first_game(state):
 		if outcomes[len(outcomes)-1] is 2:
 			return info["last_move"]
 		else:
-			if info["last_move"] == 1:
-				return 0
-			else:
-				return 1
+			#https://stackoverflow.com/questions/1779286/swapping-1-with-0-and-0-with-1-in-a-pythonic-way
+			#binary not operator substitute
+			return 1-info["last_move"]:
 
 #Function if the opponent is determined to be dumb, picks the risky option first
 #If the payout from the previous move is not 2, it switches
@@ -233,7 +296,11 @@ def risky_game(state):
 #If the outcome of the last round was 1 or greater (ie a good but not necessarily the best result, it picks the same move again)
 #otherwise it switches moves
 def safe_game(state):
-
+	
+	if info["consecutive_plays"] >= 2 and info["split"] not None and state["last-outcome"] != info["split"]:
+		return 1 - state["last-opponent-play"]
+		
+	
 	if info["round_counter"] is 1:
 		if info["risky"] is None:
 			if info["preferred"] is not None:
