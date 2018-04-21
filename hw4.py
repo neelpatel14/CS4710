@@ -70,12 +70,22 @@ def choose_strat(state):
 	if info["dominant"] is not None:
 		return info["dominant"]
 
-	if not game_lengths and info["round_counter"]>max(get_stats(game_lengths)[0]-2*game_lengths[1],6) 
-	# if game lengths is not empty AKA not the first game
+	if game_lengths>=3 and info["round_counter"]>max(get_stats(game_lengths)[0]-2*game_lengths[1],6) 
+	# if there are more than 3 games played
 	# and the current round is greater than 1 standard deviation lower than the mean game number
 	# we assume normality of distribution because prof. said so
 		if info["risky"] not None
-			return info["risky"]
+		#if there exiss a risky move
+			if info["last_move"]!=info["risky"]
+			#if the opponent's last move was risky
+				rr = info["prospects"][info["risky"]][info["risky"]]
+				rs = info["prospects"][info["risky"]][1-info["risky"]]
+				sr = info["prospects"][1-info["risky"]][info["risky"]]
+				ss = info["prospects"][1-info["risky"]][1-info["risky"]]
+				if (.8*rs-.2*rr)-(.8*ss-.2sr)>0
+					#we estimate opponent will chose safe 80% of the time
+					#if estimated return when chosing risky - opportunity cost of chosing safe > 0
+					return info["risky"]
 
 	# if what they played last time is equal to what they played the time before that, add one to counter
 	if state["last-opponent-play"] == info["last_oponenet_move"]:
